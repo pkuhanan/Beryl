@@ -24,6 +24,7 @@ ActiveRecord::Schema.define(version: 20170524234653) do
     t.integer "logbook_id"
     t.integer "column_id"
     t.index ["column_id"], name: "index_columns_logbooks_on_column_id"
+    t.index ["logbook_id", "column_id"], name: "index_columns_logbooks_on_logbook_id_and_column_id", unique: true
     t.index ["logbook_id"], name: "index_columns_logbooks_on_logbook_id"
   end
 

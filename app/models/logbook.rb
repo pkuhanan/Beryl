@@ -1,7 +1,7 @@
 class Logbook < ApplicationRecord
   belongs_to :user
   has_many :entries
-  has_and_belongs_to_many :columns
+  has_and_belongs_to_many :columns, -> { distinct }
   
   before_validation :set_defaults
   

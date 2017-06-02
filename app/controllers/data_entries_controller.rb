@@ -1,16 +1,18 @@
 class DataEntriesController < ApplicationController
   before_action :set_data_entry, only: [:show, :update, :destroy]
+  before_action :validate_type!, only: [:create, :update]
+  before_action :validate_id!, only: [:update]
 
   # GET /data_entries
   def index
-    @data_entries = DataEntry.all
+    @data_entries = index_query
 
-    render json: @data_entries
+    render json: @data_entries, include: params[:include], fields: fields_params
   end
 
   # GET /data_entries/1
   def show
-    render json: @data_entry
+    render json: @data_entry, include: params[:include], fields: fields_params
   end
 
   # POST /data_entries
@@ -20,7 +22,7 @@ class DataEntriesController < ApplicationController
     if @data_entry.save
       render json: @data_entry, status: :created, location: @data_entry
     else
-      render json: @data_entry.errors, status: :unprocessable_entity
+      render json: serialize_errors(@data_entry), status: :unprocessable_entity
     end
   end
 
@@ -29,7 +31,7 @@ class DataEntriesController < ApplicationController
     if @data_entry.update(data_entry_params)
       render json: @data_entry
     else
-      render json: @data_entry.errors, status: :unprocessable_entity
+      render json: serialize_errors(@data_entry), status: :unprocessable_entity
     end
   end
 
@@ -43,9 +45,25 @@ class DataEntriesController < ApplicationController
     def set_data_entry
       @data_entry = DataEntry.find(params[:id])
     end
-
-    # Only allow a trusted parameter "white list" through.
+    
     def data_entry_params
-      params.require(:data_entry).permit(:entry_id, :column_id, :data)
+      attributes = params.require(:data).permit(attributes: [:data]).fetch(:attributes, {})
+      attributes.merge(relationships)
+    end
+    
+    def relationship_keys
+      [:entry, column]
+    end
+    
+    def filter_keys
+      [:entry_id, :column_id, :data]
+    end
+    
+    def fields_keys
+      [:entry, :columns]
+    end
+    
+    def sort_keys
+      DataEntry.column_names
     end
 end

@@ -1,17 +1,19 @@
 class UsersController < ApplicationController
   skip_before_action :require_login, only: [:create], raise: false
   before_action :set_user, only: [:show, :update, :destroy]
-
+  before_action :validate_type!, only: [:create, :update]
+  before_action :validate_id!, only: [:update]
+  
   # GET /users
   def index
-    @users = User.all
+    @users = index_query
 
-    render json: @users
+    render json: @users, include: params[:include], fields: fields_params
   end
 
   # GET /users/1
   def show
-    render json: @user
+    render json: @user, include: params[:include], fields: fields_params
   end
 
   # POST /users
@@ -21,7 +23,7 @@ class UsersController < ApplicationController
     if @user.save
       render json: @user, status: :created, location: @user
     else
-      render json: @user.errors, status: :unprocessable_entity
+      render json: serialize_errors(@user), status: :unprocessable_entity
     end
   end
 
@@ -30,7 +32,7 @@ class UsersController < ApplicationController
     if @user.update(user_params)
       render json: @user
     else
-      render json: @user.errors, status: :unprocessable_entity
+      render json: serialize_errors(@user), status: :unprocessable_entity
     end
   end
 
@@ -47,6 +49,23 @@ class UsersController < ApplicationController
 
     # Only allow a trusted parameter "white list" through.
     def user_params
-      params.require(:user).permit(:email, :name, :password)
+      attributes = params.require(:data).permit(attributes: [:email, :name, :password]).fetch(:attributes, {})
+      attributes.merge(relationships)
+    end
+    
+    def relationship_keys
+      [:logbook]
+    end
+    
+    def filter_keys
+      [:name, :email]
+    end
+    
+    def fields_keys
+      [:logbooks]
+    end
+    
+    def sort_keys
+      User.column_names
     end
 end
