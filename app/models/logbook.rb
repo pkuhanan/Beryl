@@ -10,7 +10,7 @@ class Logbook < ApplicationRecord
   
   private
   
-  def set_defaults
-    self.private = false if self.private.nil?      
-  end
+    def set_defaults
+      self.private = false if self.private.nil?      
+    end
 end

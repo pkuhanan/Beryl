@@ -5,6 +5,7 @@ class DataEntriesController < ApplicationController
 
   # GET /data_entries
   def index
+    authorize DataEntry
     @data_entries = index_query
 
     render json: @data_entries, include: params[:include], fields: fields_params
@@ -12,13 +13,14 @@ class DataEntriesController < ApplicationController
 
   # GET /data_entries/1
   def show
+    authorize @data_entry
     render json: @data_entry, include: params[:include], fields: fields_params
   end
 
   # POST /data_entries
   def create
     @data_entry = DataEntry.new(data_entry_params)
-
+    authorize @data_entry
     if @data_entry.save
       render json: @data_entry, status: :created, location: @data_entry
     else
@@ -28,6 +30,7 @@ class DataEntriesController < ApplicationController
 
   # PATCH/PUT /data_entries/1
   def update
+    authorize @data_entry
     if @data_entry.update(data_entry_params)
       render json: @data_entry
     else
@@ -37,7 +40,9 @@ class DataEntriesController < ApplicationController
 
   # DELETE /data_entries/1
   def destroy
+    authorize @data_entry
     @data_entry.destroy
+    render json: @data_entry
   end
 
   private
@@ -47,7 +52,7 @@ class DataEntriesController < ApplicationController
     end
     
     def data_entry_params
-      attributes = params.require(:data).permit(attributes: [:data]).fetch(:attributes, {})
+      attributes = params.require(:data).permit(attributes: policy(DataEntry).permitted_attributes)
       attributes.merge(relationships)
     end
     

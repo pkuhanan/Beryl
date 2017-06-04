@@ -7,23 +7,23 @@ class ApplicationPolicy
   end
 
   def index?
-    false
+    user.admin? 
   end
 
   def show?
-    record.user == user
+    user.admin? || record.user == user || !record.private?
   end
 
   def create?
-    false
+    user.admin? || record.user == user
   end
 
   def update?
-    record.user == user
+    user.admin? || record.user == user
   end
 
   def destroy?
-    record.user == user
+    user.admin? || record.user == user
   end
 
   def scope

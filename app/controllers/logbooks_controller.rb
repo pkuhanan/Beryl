@@ -5,6 +5,7 @@ class LogbooksController < ApplicationController
   
   # GET /logbooks
   def index
+    authorize Logbook
     @logbooks = index_query
 
     render json: @logbooks, include: params[:include], fields: fields_params
@@ -12,13 +13,15 @@ class LogbooksController < ApplicationController
 
   # GET /logbooks/1
   def show
+    authorize @logbook
     render json: @logbook, include: params[:include], fields: fields_params
   end
 
   # POST /logbooks
   def create
     @logbook = Logbook.new(logbook_params)
-    
+    authorize @logbook
+     
     if @logbook.save
       render json: @logbook, status: :created, location: @logbook
     else
@@ -28,6 +31,7 @@ class LogbooksController < ApplicationController
 
   # PATCH/PUT /logbooks/1
   def update
+    authorize @logbook
     if @logbook.update(logbook_params)
       render json: @logbook
     else
@@ -37,17 +41,19 @@ class LogbooksController < ApplicationController
 
   # DELETE /logbooks/1
   def destroy
+    authorize @logbook
     @logbook.destroy
+    render json: @logbook
   end
 
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_logbook
-      @logbook = Logbook.find(params[:id])
+      @logbook = authorize Logbook.find(params[:id])
     end
     
     def logbook_params
-      attributes = params.require(:data).permit(attributes: [:name, :description, :private])
+      attributes = params.require(:data).permit(attributes: policy(Logbook).permitted_attributes)
       attributes.merge(relationships)
     end
     

@@ -31,5 +31,6 @@ module Chandemonium
     config.api_only = true
     
     config.autoload_paths << Rails.root.join('lib')
+    config.action_dispatch.rescue_responses["Pundit::NotAuthorizedError"] = :forbidden
   end
 end

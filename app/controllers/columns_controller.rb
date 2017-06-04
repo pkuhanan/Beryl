@@ -1,11 +1,11 @@
 class ColumnsController < ApplicationController
   before_action :set_column, only: [:show, :update, :destroy]
-  before_action :convert_boolean_params, only: [:index]
   before_action :validate_type!, only: [:create, :update]
   before_action :validate_id!, only: [:update]
 
   # GET /columns
   def index
+    authorize Column
     @columns = index_query
     
     render json: @columns, include: params[:include], fields: fields_params
@@ -13,18 +13,25 @@ class ColumnsController < ApplicationController
 
   # GET /columns/1
   def show
+    authorize @column
     render json: @column, include: params[:include], fields: fields_params
   end
 
   # POST /columns
   def create
     @column = Column.new(column_params)
-
+    authorize @column
     if @column.save
       render json: @column, status: :created, location: @column
     else
       render json: serialize_errors(@column), status: :unprocessable_entity
     end
+  end
+  
+  def destroy
+    authorize @column
+    @column.destroy
+    render json: @column
   end
 
   private
@@ -34,7 +41,7 @@ class ColumnsController < ApplicationController
     end
     
     def column_params
-      attributes = params.require(:data).permit(attributes: [:name, :data_type, :multiple]).fetch(:attributes, {})
+      attributes = params.require(:data).permit(attributes: policy(Column).permitted_attributes)
       attributes.merge(relationships)
     end
     

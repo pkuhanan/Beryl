@@ -3,6 +3,8 @@ class DataEntry < ApplicationRecord
   belongs_to :column
   delegate :logbook, :to => :entry
   delegate :user, :to => :entry
+  delegate :private?, :to => :entry
+
   
   validates :data, :presence => true
   validates :column, inclusion: { in: lambda {|record| record.logbook.columns},

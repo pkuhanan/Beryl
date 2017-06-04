@@ -1,6 +1,7 @@
 class ApplicationController < ActionController::API
   include ActionController::HttpAuthentication::Token::ControllerMethods
   include Pundit
+  rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
   before_action :require_login
   
   def require_login
@@ -20,12 +21,17 @@ class ApplicationController < ActionController::API
 
   private
   
+    def user_not_authorized(exception)
+      errors = { errors: [ { detail: "Not authorized to perform this action" } ] }
+      render json: errors, status: :forbidden
+    end
+  
     def model_klass
       self.class.to_s.chomp("Controller").singularize.constantize
     end
   
     def index_query
-      query = model_klass.order(sort_params)
+      query = policy_scope(model_klass).order(sort_params)
       query = query.first(query_params[:limit]) if query_params[:limit].to_i > 0
       query.where(query_params[:filter])
     end
@@ -58,14 +64,14 @@ class ApplicationController < ActionController::API
     end
     
     def validated_sort_params
-      sort_params = query_params.fetch(:sort, []).split(",")
-      
-      valid = sort_params.all? do |key| 
+      raw_sort_params = query_params.fetch(:sort, "").split(",")
+      Rails.logger.debug "@@@@ #{raw_sort_params}"
+      valid = raw_sort_params.all? do |key| 
         sort_keys.include?(reverse_chomp(key, "-")) 
       end
       raise ActionController::BadRequest.new("Invalid sort parameter provided") unless valid
       
-      sort_params
+      raw_sort_params
     end
   
     def reverse_chomp(string, character)
