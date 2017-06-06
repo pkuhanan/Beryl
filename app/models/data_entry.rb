@@ -4,6 +4,7 @@ class DataEntry < ApplicationRecord
   delegate :logbook, :to => :entry
   delegate :user, :to => :entry
   delegate :private?, :to => :entry
+  delegate :data_type, :to => :column
 
   
   validates :data, :presence => true

@@ -26,6 +26,7 @@ group :development, :test do
   gem "rack-test", require: "rack/test"
   gem "factory_girl_rails"
   gem 'pry'
+  gem 'pundit-matchers', '~> 1.3.0'
 end
 
 group :development do
