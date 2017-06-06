@@ -65,7 +65,7 @@ class EntriesController < ApplicationController
     end
     
     def fields_keys
-      [:logbook, :data_entries]
+      [:logbooks, :data_entries, :entries]
     end
     
     def sort_keys

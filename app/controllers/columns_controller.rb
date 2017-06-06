@@ -50,7 +50,7 @@ class ColumnsController < ApplicationController
     end
     
     def fields_keys
-      [:logbooks, :data_entries]
+      [:logbooks, :data_entries, :columns]
     end
     
     def sort_keys

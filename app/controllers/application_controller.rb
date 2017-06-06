@@ -26,22 +26,26 @@ class ApplicationController < ActionController::API
 
   private
   
-    def model_klass
-      self.class.to_s.chomp("Controller").singularize.constantize
-    end
-  
-    def index_query
-      query = policy_scope(model_klass).order(sort_params)
-      query = query.first(query_params[:limit]) if query_params[:limit].to_i > 0
-      query.where(query_params[:filter])
-    end
-
     def authenticate_token
       # Authorization header format: "Authorization: Token token=<your-token-here>"
       authenticate_with_http_token do |token, options|
         User.find_by(token: token)
       end
     end  
+  
+    def validate_id!
+      id = params.require(:data).require(:id)
+      raise ActionController::BadRequest.new("Provided id does not match this endpoint") unless id.to_s == params[:id].to_s
+    end
+    
+    def validate_type!
+      type = params.require(:data).require(:type)
+      raise ActionController::BadRequest.new("Invalid type parameter provided: #{type}") unless type == model_klass.to_s.underscore
+    end
+  
+    def model_klass
+      self.class.to_s.chomp("Controller").singularize.constantize
+    end
     
     def query_params
       params.permit(:limit, :sort, filter: filter_keys, fields: fields_keys)
@@ -50,6 +54,12 @@ class ApplicationController < ActionController::API
     def fields_params
       fields = query_params[:fields]
       fields.each{ |key,str| fields[key] = str.split(",") } if fields.present?
+    end
+  
+    def index_query
+      query = policy_scope(model_klass).order(sort_params)
+      query = query.first(query_params[:limit]) if query_params[:limit].to_i > 0
+      query.where(query_params[:filter])
     end
     
     def sort_params
@@ -65,7 +75,6 @@ class ApplicationController < ActionController::API
     
     def validated_sort_params
       raw_sort_params = query_params.fetch(:sort, "").split(",")
-      Rails.logger.debug "@@@@ #{raw_sort_params}"
       valid = raw_sort_params.all? do |key| 
         sort_keys.include?(reverse_chomp(key, "-")) 
       end
@@ -76,16 +85,6 @@ class ApplicationController < ActionController::API
   
     def reverse_chomp(string, character)
       string.reverse.chomp(character).reverse
-    end
-    
-    def validate_id!
-      id = params.require(:data).require(:id)
-      raise ActionController::BadRequest.new("Provided id does not match this endpoint") unless id.to_s == params[:id].to_s
-    end
-    
-    def validate_type!
-      type = params.require(:data).require(:type)
-      raise ActionController::BadRequest.new("Invalid type parameter provided: #{type}") unless type == model_klass.to_s.underscore
     end
     
     def relationships

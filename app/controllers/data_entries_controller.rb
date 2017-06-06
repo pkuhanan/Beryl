@@ -65,7 +65,7 @@ class DataEntriesController < ApplicationController
     end
     
     def fields_keys
-      [:entry, :columns]
+      [:entries, :columns, :data_entries]
     end
     
     def sort_keys

@@ -68,7 +68,7 @@ class UsersController < ApplicationController
     end
     
     def fields_keys
-      [:logbooks]
+      [:logbooks, :users]
     end
     
     def sort_keys
