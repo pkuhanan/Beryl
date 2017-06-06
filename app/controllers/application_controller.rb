@@ -1,7 +1,7 @@
 class ApplicationController < ActionController::API
   include ActionController::HttpAuthentication::Token::ControllerMethods
   include Pundit
-  rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
+  rescue_from Pundit::NotAuthorizedError, with: :render_unforbidden
   before_action :require_login
   
   def require_login
@@ -18,13 +18,13 @@ class ApplicationController < ActionController::API
       errors = { errors: [ { detail: message } ] }
       render json: errors, status: :unauthorized
     end
-
-  private
-  
-    def user_not_authorized(exception)
-      errors = { errors: [ { detail: "Not authorized to perform this action" } ] }
+    
+    def render_unforbidden(exception)
+      errors = { errors: [ { detail: "Not allowed to perform this action" } ] }
       render json: errors, status: :forbidden
     end
+
+  private
   
     def model_klass
       self.class.to_s.chomp("Controller").singularize.constantize
